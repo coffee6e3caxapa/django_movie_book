@@ -1,0 +1,219 @@
+При начале работы с базой данных в пайчарм
+открываем терминал
+в терминале надо перейти на путь проекта к примеру
+D:\Python\myDjangoProjects\movie_proj> а здесь уже список приложений должен быть
+для автозаполнения форм и красивого и полного вывода информации в терминале
+необходимо установить 2 pip модуля ipython и django_extensions
+IPYTHON это подсказки для автозаполнения
+подсказки вызываются TAB когда начал писать текст
+
+from django.db import connection - импорт для просмотра команд под капотом джанго
+connection.queries - sql запрос
+команда выполняется после переходом в режим shell
+
+переходом в режим shell
+для работы с файлами необходимо перейти в shel windows командой
+manage.py shell
+здесь мне будут доступен весь проект
+
+django_extensions необходимо прописать в settings.oy/installed_apps для того что бы он работал
+django_extensions - позволяет смотреть какие запросы выполняются под капотом django (в каком то warm?)
+
+после будет доступны новые команды
+например команда
+
+manage.py shell_plus --print-sql
+
+тогда будет сразу видно какой sql запрос был сделан
+
+
+далее прописать следующие команды
+connection.queries - команда для просмотра sql запросов выполняемых под капотом django
+from movie_app.models.py import Movie импорт в shell класса Movie из приложения movie_app
+
+Класс Movie является таблицей в БД
+Экземпляры класса будут являться записями в таблице
+
+Пример записи в таблицу
+Movie(name='Matrix",rating=85)
+в колонку name пойдет матрих в колонку rating пойдет 85
+также можно записать и следующим образом
+a = Movie(name='Matrix",rating=85)
+
+После необходимо сохранить запись в базу данных
+a.save() или
+Movie(name='Matrix",rating=85).save() если без экземпляра класса сохранять
+
+
+При работе с моделями необходимо делать миграции всегда для записи в бд, кроме добавления магически методов
+ппри этом надо выйти  из shell
+manage.py makemigrations
+
+migrations
+
+
+INSERT INTO movie_app_movie ("name", "rating") VALUES('Django',83); пример запроса в DB BROWSER SQL запрос
+
+databased is locked - Решение проблемы  в DB BROWSER нажать записать иизменения и после БД будет доступна
+
+
+ВЫБОРКА ЗАПИСЕЙ
+
+
+Movie.objects.all() непонятный список записей из базы данных
+Movie - это класс-модель
+Какого типа будет результат - QuerySet
+его SQL запрос
+
+SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating"
+  FROM "movie_app_movie"
+LIMIT 21
+
+Movie.objects.all() Показать все обьекты класса(таблицы) Movie, но для красивого отображения информации необходимо
+
+прописать в классе метод __str__
+Можно передавать срез, но отрицательный индекс передавать нельзя, отсчет идет с 1 и включается в себя 2
+Movie.objects.all()[:2]
+sql запрос
+ SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating"
+  FROM "movie_app_movie"
+ LIMIT 2
+
+Movie.objects.all()[2:4]
+Доступ к атрибутам класса
+a = Movie(name='Matrix",rating=85)
+a.name или a.rating
+
+
+ИЗМЕНЕНИЙ И УДАЛЕНИЕ ЗНАЧЕНИЙ
+
+Затем выберите все записи из Book модели и сохраните их в переменную books.
+books = Book.objects.all()
+
+
+После этого обратитесь ко второй книге и узнайте какой у нее рейтинг
+books[2].rating
+
+django = Movie.objects.all()[2]
+изменить значение
+django.name='Petuh'
+для сохранения изменения в базе данных
+django.save()
+
+sql запрос
+UPDATE "movie_app_movie"
+   SET "name" = 'Fjango-freeman',
+       "rating" = 83,
+       "year" = NULL,
+       "budget" = 1000000
+ WHERE "movie_app_movie"."id" = 3
+
+Удаление
+
+Movie.objects.all()[2].delete(0) как один из вариантов без присваивания в переменную сразу выполняется save()
+avengers = Movie(name="Avengers:Endgame", rating=100, budget=356000000, year=2019)
+avengers.delete()
+Movie.objects.all() Получение всех объектов таблицы из бД
+
+
+Фильтрация данных ORM. Методы filter и get. Курс по Django 3
+
+
+ПОЛУЧЕНИЕ ДАННЫХ
+QuerySets
+https://docs.djangoproject.com/en/3.2/ref/models/querysets/#contains
+
+
+обращение по id к информации из базы данных
+Movie.objects.get(id=3)
+SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE "movie_app_movie"."id" = 3
+ LIMIT 21
+
+Обращение по другим данным таблицам, не самый лучший метод
+Movie.objects.get(rating=80) но если будет несколько записей с такими условием или 0 записей, будет ошибка
+DOESNOTEXIST, необходимо быть уверенным что запись вернет один объект
+DoesNotExist Если 0 записей
+MultipleObjectsReturned Запрос когда много объектов выдает этот метод
+
+Сюда могут попасть несколько записей, также будет КВЕРИ СЕТ и можно обращаться по индексам
+Так же фильтер может 0 значений
+Movie.objects.filter(budget=1000000)
+
+Movie.objects.filter(budget__gt=1000000) для получения значений больше этой цифры
+Movie.objects.filter(budget__lt=1000000) для получения значений меньше этой цифры
+Movie.objects.filter(budget__gte=1000000) для получения значений больше или равно этой цифры
+Movie.objects.filter(budget__lte=1000000) для получения значений меньше или равно этой цифры
+Movie.objects.exclude(budget=1000000) для получения значений которые не равны этой цифре
+exclude это те значения которые мы хотим исключить из выдачи результатов
+Movie.objects.exclude(rating__gt=86)
+
+Movie.objects.exclude(rating__gt=83)
+Out[27]: SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE NOT ("movie_app_movie"."rating" > 83)
+ LIMIT 21
+
+Movie.objects.filter(budget=1000000)
+SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE NOT ("movie_app_movie"."budget" = 1000000)
+ LIMIT 21
+
+Movie.objects.filter(year__isnull=True) для получения значений которые равны NULL
+Out[21]: SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE "movie_app_movie"."year" IS NULL
+ LIMIT 21
+
+Запрос с одним нулевым полем и полем имя в которым содержится аватар
+
+Movie.objects.filter(year__isnull=True, name="AVATAR")
+Out[23]: SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE ("movie_app_movie"."name" = 'AVATAR' AND "movie_app_movie"."year" IS NULL)
+ LIMIT 21
+
+ФАйлы где нет NULL
+
+Movie.objects.exclude(year__isnull=False)
+
+ФАйлы где нет NULL, и где нейм равен АВАТАР
+
+ Movie.objects.exclude(year__isnull=False).filter(name="AVATAR")
+Out[26]: SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE (NOT ("movie_app_movie"."year" IS NOT NULL) AND "movie_app_movie"."name" = 'AVATAR')
+ LIMIT 21
+
+
+
