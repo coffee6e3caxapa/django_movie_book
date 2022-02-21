@@ -1,3 +1,6 @@
+Book.objects.exclude работает обратно от Book.objects.filter
+т.е первый это исключить показ выбранных атрибутов, а фильтер показать все выбранные атрибуты
+
 При начале работы с базой данных в пайчарм
 открываем терминал
 в терминале надо перейти на путь проекта к примеру
@@ -217,3 +220,89 @@ Out[26]: SELECT "movie_app_movie"."id",
 
 
 
+Содержит внутри запроса эти символы
+Movie.objects.filter(name__contains="ava")
+
+
+Movie.objects.filter(rating__gt=87)
+рейтинг выше 87, 87 не входит
+SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE "movie_app_movie"."rating" > 87
+ LIMIT 21
+
+Запрос исключает пустые года и бюджет строго ниже 2млн
+Movie.objects.exclude(year__isnull=True).filter(budget__lt=200000000)
+Out[38]: SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE (NOT ("movie_app_movie"."year" IS NULL) AND "movie_app_movie"."budget" < 200000000)
+ LIMIT 21
+
+Запрос который Не содержит пустые года и бюджет строго ниже 2млн
+Movie.objects.exclude(year__isnull=False).filter(budget__lt=200000000)
+Out[37]: SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE (NOT ("movie_app_movie"."year" IS NOT NULL) AND "movie_app_movie"."budget" < 200000000)
+ LIMIT 21
+
+--Автор не указан
+
+In [44]: Book.objects.filter(author__isnull=True)
+Out[44]: SELECT "book_app_book"."id",
+       "book_app_book"."title",
+       "book_app_book"."rating",
+       "book_app_book"."is_best_selling",
+       "book_app_book"."author"
+  FROM "book_app_book"
+ WHERE "book_app_book"."author" IS NULL
+ LIMIT 21
+
+--Автор не указан
+
+In [45]: Book.objects.filter(author__isnull=False)
+Out[45]: SELECT "book_app_book"."id",
+       "book_app_book"."title",
+       "book_app_book"."rating",
+       "book_app_book"."is_best_selling",
+       "book_app_book"."author"
+  FROM "book_app_book"
+ WHERE "book_app_book"."author" IS NOT NULL
+ LIMIT 21
+
+
+
+СОЮЗ Q
+
+Movie.objects.filter(Q(year__isnull=True))
+& Союз И
+Movie.objects.filter(Q(year__isnull=True) & Q(rating=80))
+~Тильда отрицание или союз NOT
+Movie.objects.filter(Q(year__isnull=True))
+  | Союз или
+ Movie.objects.filter(Q(year__isnull=True) | Q(rating=80))
+ Так как снизу можно, но нельзя сначала писать именованные аргументы
+ Смотри видео #38 django
+ Movie.objects.filter(Q(year__isnull=True) | Q(rating=80, rating=83)
+
+ Диапазон от и до
+ Movie.objects.filter(Q(rating__gt=83) & Q(rating__lt=95))
+ SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE ("movie_app_movie"."rating" > 83 AND "movie_app_movie"."rating" < 95)
+ LIMIT 21
