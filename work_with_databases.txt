@@ -300,15 +300,43 @@ Out[45]: SELECT "book_app_book"."id",
 
 
 
-СОЮЗ Q
+СОЮЗ Q он приравнен к AND
 
 Movie.objects.filter(Q(year__isnull=True))
+ SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE "movie_app_movie"."year" IS NULL
+
+
 & Союз И
 Movie.objects.filter(Q(year__isnull=True) & Q(rating=80))
+SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE ("movie_app_movie"."year" IS NULL AND "movie_app_movie"."rating" = 80)
+
+
 ~Тильда отрицание или союз NOT
 Movie.objects.filter(Q(year__isnull=True))
-  | Союз или
+
+  | Союз ИЛИ
  Movie.objects.filter(Q(year__isnull=True) | Q(rating=80))
+ SELECT "movie_app_movie"."id",
+       "movie_app_movie"."name",
+       "movie_app_movie"."rating",
+       "movie_app_movie"."year",
+       "movie_app_movie"."budget"
+  FROM "movie_app_movie"
+ WHERE ("movie_app_movie"."year" IS NULL OR "movie_app_movie"."rating" = 80)
+ LIMIT 21
+
  Так как снизу можно, но нельзя сначала писать именованные аргументы
  Смотри видео #38 django
  Movie.objects.filter(Q(year__isnull=True) | Q(rating=80, rating=83)
